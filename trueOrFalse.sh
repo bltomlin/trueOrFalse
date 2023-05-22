@@ -1,40 +1,60 @@
-#!/usr/bin/env bash
+mRANDOM=4096
+responses=( "Perfect!" "Awesome!" "You are a genius!" "Wow!" "Wonderful!" )
+score=10
+count=0
 
-echo "Welcome to the True or False Game!"
-<<comment
-$var1 = "Login message: "
-curl --silent --output ID_card.txt http://127.0.0.1:8000/download/file.txt
-var=$(cat ID_card.txt | cut -d \" -f4,8 | tr \" :)
-curl --silent --output cookie.txt --cookie-jar cookie --user $var http://127.0.0.1:8000/login
-echo "Login message: " && cat cookie.txt
-curl --silent --output out.txt --cookie cookie http://127.0.0.1:8000/game
-echo "Response: " && cat out.txt
-comment
-echo "0. Exit"
-echo "1. Play a game"
-echo "2. Display scores"
-echo "3. Reset scores"
-echo "Enter an option:"
-read con
-while [ $con != 0 ]
-do
-    if [ $con -eq 1 ]
-    then
-        echo "Playing game"
-    elif [ $con -eq 2 ]
-    then
-        echo "Displaying scores"
-    elif [ $con -eq 3 ]
-    then
-        echo "Resetting scores"
-    else
-        echo "Invalid option!"
-    fi
+echo -e "Welcome to the True or False Game!\n"
+  user_data=$(curl -s http://0.0.0.0:8000/download/file.txt)
+  user=$( echo "$user_data" | sed 's/.*"username": *"\{0,1\}\([^,"]*\)"\{0,1\}.*/\1/')
+  password=$( echo "$user_data" | sed 's/.*"password": *"\{0,1\}\([^,"]*\)"\{0,1\}.*/\1/')
+  curl http://0.0.0.0:8000/login -u "${user,,}:$password" -sc cookie.txt &>/dev/null
+  
+menu() {
     echo "0. Exit"
     echo "1. Play a game"
     echo "2. Display scores"
     echo "3. Reset scores"
     echo "Enter an option:"
-    read con
+    read -r option
+}
+
+play() {
+  while true;
+  do
+    response=$( curl http://0.0.0.0:8000/game -sb cookie.txt)
+    question=$( echo "$response" | sed 's/.*"question": *"\{0,1\}\([^,"]*\)"\{0,1\}.*/\1/')
+    answer=$( echo "$response" | sed 's/.*"answer": *"\{0,1\}\([^,"]*\)"\{0,1\}.*/\1/')
+    echo "$question"
+    echo "True or False?" && read -r answer_user
+      if [ "$answer" == "$answer_user" ]; then
+        ((count++))
+        indx=$((RANDOM%5))
+        echo "${responses[$indx]}"
+      else
+        echo "Wrong answer, sorry!"
+        echo "$name you have $count correct answer(s)."
+        echo "Your score is $(( "$count" * "$score" )) points."
+        break;
+      fi
+  done
+}
+
+while true;
+do
+  menu
+  case $option in
+      0 | 'quit')
+          echo "See you later!"
+          break;
+          ;;
+      1)
+        echo "What is your name?" && read -r name
+        play;;
+      2)
+        echo "Displaying scores";;
+      3)
+        echo "Resetting scores";;
+      *)
+        echo -e "Invalid option!\n";;
+  esac
 done
-echo "See you later!"
