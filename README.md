@@ -3,8 +3,7 @@ All successful programmers work hard. But they need to relax too. A way to get r
 
 # WARNING
 
-## The game will not work on any machine, unless authorized and configured for JetBrains Academy. 
-## The game was developed on an internal network using an interal API.
+## The game will not work on any machine, unless authorized and configured for JetBrains Academy. \br The game was developed on an internal network using an interal API.
 
 # 1. Installation
 ```
